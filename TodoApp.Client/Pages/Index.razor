@@ -1,5 +1,6 @@
 
 @page "/"
+@using System.Net.Http.Json
 @inject HttpClient Http
 
 <h3>To-Do List</h3>
@@ -11,7 +12,7 @@
     @foreach (var todo in todos)
     {
         <li>
-            <input type="checkbox" @bind="todo.IsDone" @onchange="() => UpdateTodo(todo)" />
+            <input type="checkbox" checked="@todo.IsDone" @onchange="@((ChangeEventArgs e) => ToggleTodo(todo, (bool)e.Value!))" />
             @todo.Title
             <button @onclick="() => DeleteTodo(todo.Id)">Delete</button>
         </li>
@@ -20,11 +21,19 @@
 
 @code {
     private List<TodoItem> todos = new();
-    private string newTodo;
+    private string newTodo = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        todos = await Http.GetFromJsonAsync<List<TodoItem>>("https://localhost:5001/api/todo");
+        try
+        {
+            todos = await Http.GetFromJsonAsync<List<TodoItem>>("https://localhost:5001/api/todo") ?? new List<TodoItem>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading todos: {ex.Message}");
+            todos = new List<TodoItem>();
+        }
     }
 
     private async Task AddTodo()
@@ -35,7 +44,7 @@
             var response = await Http.PostAsJsonAsync("https://localhost:5001/api/todo", item);
             if (response.IsSuccessStatusCode)
             {
-                todos = await Http.GetFromJsonAsync<List<TodoItem>>("https://localhost:5001/api/todo");
+                todos = await Http.GetFromJsonAsync<List<TodoItem>>("https://localhost:5001/api/todo") ?? new List<TodoItem>();
                 newTodo = string.Empty;
             }
         }
@@ -46,16 +55,22 @@
         await Http.PutAsJsonAsync($"https://localhost:5001/api/todo/{todo.Id}", todo);
     }
 
+    private async Task ToggleTodo(TodoItem todo, bool isDone)
+    {
+        todo.IsDone = isDone;
+        await UpdateTodo(todo);
+    }
+
     private async Task DeleteTodo(int id)
     {
         await Http.DeleteAsync($"https://localhost:5001/api/todo/{id}");
-        todos = await Http.GetFromJsonAsync<List<TodoItem>>("https://localhost:5001/api/todo");
+        todos = await Http.GetFromJsonAsync<List<TodoItem>>("https://localhost:5001/api/todo") ?? new List<TodoItem>();
     }
 
     public class TodoItem
     {
         public int Id { get; set; }
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
         public bool IsDone { get; set; }
     }
 }
