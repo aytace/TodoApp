@@ -1,0 +1,61 @@
+
+@page "/"
+@inject HttpClient Http
+
+<h3>To-Do List</h3>
+
+<input @bind="newTodo" placeholder="Add new todo..." />
+<button @onclick="AddTodo">Add</button>
+
+<ul>
+    @foreach (var todo in todos)
+    {
+        <li>
+            <input type="checkbox" @bind="todo.IsDone" @onchange="() => UpdateTodo(todo)" />
+            @todo.Title
+            <button @onclick="() => DeleteTodo(todo.Id)">Delete</button>
+        </li>
+    }
+</ul>
+
+@code {
+    private List<TodoItem> todos = new();
+    private string newTodo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        todos = await Http.GetFromJsonAsync<List<TodoItem>>("https://localhost:5001/api/todo");
+    }
+
+    private async Task AddTodo()
+    {
+        if (!string.IsNullOrWhiteSpace(newTodo))
+        {
+            var item = new TodoItem { Title = newTodo, IsDone = false };
+            var response = await Http.PostAsJsonAsync("https://localhost:5001/api/todo", item);
+            if (response.IsSuccessStatusCode)
+            {
+                todos = await Http.GetFromJsonAsync<List<TodoItem>>("https://localhost:5001/api/todo");
+                newTodo = string.Empty;
+            }
+        }
+    }
+
+    private async Task UpdateTodo(TodoItem todo)
+    {
+        await Http.PutAsJsonAsync($"https://localhost:5001/api/todo/{todo.Id}", todo);
+    }
+
+    private async Task DeleteTodo(int id)
+    {
+        await Http.DeleteAsync($"https://localhost:5001/api/todo/{id}");
+        todos = await Http.GetFromJsonAsync<List<TodoItem>>("https://localhost:5001/api/todo");
+    }
+
+    public class TodoItem
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public bool IsDone { get; set; }
+    }
+}
