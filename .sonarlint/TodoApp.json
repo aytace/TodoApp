@@ -1,0 +1,4 @@
+{
+    "sonarQubeUri": "https://tools.vattenfall.nl/sonarqube",
+    "projectKey": "engine-todoapp-poc"
+}
