@@ -30,3 +30,8 @@ Thumbs.db
 
 # SonarQube
 .sonarqube/
+
+# Test coverage and results
+*.coverage
+*.cobertura.xml
+TestResults/
