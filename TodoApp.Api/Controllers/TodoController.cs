@@ -10,7 +10,7 @@ namespace TodoApp.Api.Controllers
     [Route("api/[controller]")]
     public class TodoController : ControllerBase
     {
-        private static List<TodoItem> todos = new List<TodoItem>
+        private static readonly List<TodoItem> todos = new List<TodoItem>
         {
             new TodoItem { Id = 1, Title = "Test the app", IsDone = false },
             new TodoItem { Id = 2, Title = "Run SonarQube", IsDone = false }
