@@ -16,9 +16,6 @@ namespace TodoApp.Api.Controllers
             new TodoItem { Id = 2, Title = "Run SonarQube", IsDone = false }
         };
 
-        // Intentional issue: redundant code
-        private int MagicNumber() { return 7; }
-
         [HttpGet]
         public IEnumerable<TodoItem> Get() => todos;
 
